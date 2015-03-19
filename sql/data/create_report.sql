@@ -13,6 +13,8 @@ CREATE TABLE "data"."rpt_parcela" (
 "par_geom" "public".geometry,
 "sec_codi" varchar(10),
 "sec_descripcio" varchar(200),
+"cla_codi" varchar(10),
+"cla_descripcio" varchar(200),
 PRIMARY KEY ("par_ninterno") 
 );
 ALTER TABLE "data"."rpt_parcela" OWNER TO "gisadmin";

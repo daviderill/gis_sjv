@@ -4,6 +4,7 @@ CREATE OR REPLACE FUNCTION "data"."fill_report"(p_parcela int8)
 DECLARE
 	r_par record;
 	r_sec record;
+	r_cla record;
 	r_qua record;
 	v_sql varchar;
 	v_sector varchar;
@@ -14,27 +15,39 @@ DECLARE
 BEGIN
 
 	-- Afegim al paràmetre de sistema search_path tots els esquemes
-	SET search_path TO carto, data, public;
+	SET search_path TO carto, data, planejament_urba, public;
 
 	-- Creació taula de report
-	PERFORM create_report();
+	--PERFORM create_report();
+
+	-- Borrem contingut previ de les taules de report
+	DELETE FROM rpt_parcela;
+	DELETE FROM rpt_planejament;
 
 	-- Obtenim àrea i refcat
 	SELECT ST_Area(geom) AS area, refcat, geom INTO r_par FROM parcela WHERE ninterno = p_parcela;
-	--v_out:= 'Area: '||rec_par.area||' - Parcela: '||rec_par.refcat;
 	
 	-- Obtenim sector a través intersecció de les dues capes
 	SELECT sectors.codi, sectors.codi||' - '||sectors.descripcio AS descripcio, ST_Area(ST_Intersection(parcela.geom, sectors.geom)) AS area_int
 	INTO r_sec
-	FROM parcela, sectors
+	FROM parcela, sectors_urbanistics AS sectors
 	WHERE parcela.ninterno = p_parcela
 		AND ST_Intersects(parcela.geom, sectors.geom)
 	ORDER BY area_int DESC
 	LIMIT 1;
 
+	-- Obtenim classificació del sòl a través intersecció de les dues capes
+	SELECT classificacio.codi, classificacio.codi||' - '||classificacio.descripcio AS descripcio, ST_Area(ST_Intersection(parcela.geom, classificacio.geom)) AS area_int
+	INTO r_cla
+	FROM parcela, classificacio
+	WHERE parcela.ninterno = p_parcela
+		AND ST_Intersects(parcela.geom, classificacio.geom)
+	ORDER BY area_int DESC
+	LIMIT 1;
+
 	-- Omplim taula de report principal
-	v_sql:= 'INSERT INTO rpt_parcela (par_ninterno, par_refcat, par_area, sec_codi, sec_descripcio) VALUES 
-		('||p_parcela||', '||quote_nullable(r_par.refcat)||', '||r_par.area||', '||quote_nullable(r_sec.codi)||', '||quote_nullable(r_sec.descripcio)||')';
+	v_sql:= 'INSERT INTO rpt_parcela (par_ninterno, par_refcat, par_area, sec_codi, sec_descripcio, cla_codi, cla_descripcio) VALUES 
+		('||p_parcela||', '||quote_nullable(r_par.refcat)||', '||r_par.area||', '||quote_nullable(r_sec.codi)||', '||quote_nullable(r_sec.descripcio)||', '||quote_nullable(r_cla.codi)||', '||quote_nullable(r_cla.descripcio)||')';
 	EXECUTE v_sql;
 
 	-- Actualitzar geometria
