@@ -16,17 +16,9 @@ import getpass
 
 def formOpen(dialog,layerid,featureid):
 
-    global _dialog, _parent, _iface, current_path, current_date
+    global _dialog, _iface, current_path, current_date
     global MSG_DURATION, MAX_CLAUS
-    
-    # Set global variables    
-    _dialog = dialog
-    _parent = _dialog.parentWidget()
-    MSG_DURATION = 5
-    MAX_CLAUS = 4	
-    widgetsToGlobal()
-    #print getpass.getuser()
-    
+       
     # Check if it is the first time we execute this module
     if isFirstTime():
           
@@ -35,11 +27,24 @@ def formOpen(dialog,layerid,featureid):
         date_aux = time.strftime("%d/%m/%Y")
         current_date = datetime.strptime(date_aux, "%d/%m/%Y")
         _iface = iface
+		
+        # Set constants
+        MSG_DURATION = 5
+        MAX_CLAUS = 4	
+        #print getpass.getuser()		
 
         # Connect to Database (only once, when loading map)
         showInfo("Attempting to connect to DB")
         connectDb()
-        
+		
+	# If not, close previous dialog	
+    else:
+        _dialog.parent().setVisible(False) 
+		
+    # Get dialog and his widgets
+    _dialog = dialog	
+    widgetsToGlobal()	
+		
     # Initial configuration
     initConfig()
     
@@ -247,8 +252,7 @@ def openPdfZones():
 	
 def openURL(url):
 
-    urlPath = "file://"+current_path+"\\html\\"+url
-    print "openURL: "+urlPath		
+    urlPath = "file://"+current_path+"\\html\\"+url	
     webbrowser.open(urlPath, 2)	
 
 	

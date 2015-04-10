@@ -16,24 +16,6 @@ def isFirstTime():
         first = False
     return first
 
-    
-def getProva():
-    
-    global prova
-    if not 'prova' in globals():
-        print "Not defined"
-        prova = 1
-    else:
-        print "Defined"
-        prova = prova + 1
-    return prova
-    
-    
-def setDialog(p_dialog):
-    
-    global _dialog
-    _dialog = p_dialog
-
 
 def setCursor(p_cursor):
     
