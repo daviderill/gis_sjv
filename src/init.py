@@ -51,7 +51,6 @@ def init():
 def initAction(ninterno):
     global param
     param = ninterno
-#    print "ninterno seleccionat: "+str(param)
     connectDb()
     fillReport()
 
@@ -67,12 +66,11 @@ def connectDb():
 
 def widgetsToGlobal():
 
-    global ninterno, refcat, area, txtSector, lblCondGenerals
+    global ninterno, refcat, area, lblCondGenerals
 
     ninterno = _dialog.findChild(QLineEdit, "ninterno") 	
     refcat = _dialog.findChild(QLineEdit, "refcat")            
     area = _dialog.findChild(QLineEdit, "area")        
-    txtSector = _dialog.findChild(QLabel, "txtSector")   
     lblCondGenerals = _dialog.findChild(QLabel, "lblCondGenerals")   	
     ninterno.setVisible(False)
 	
@@ -95,7 +93,7 @@ def initConfig():
 def loadData():
 
 	# Dades parcela
-    sql = "SELECT sec_codi, sec_descripcio FROM data.rpt_parcela"
+    sql = "SELECT sec_codi, sec_descripcio, cla_codi, cla_descripcio FROM data.rpt_parcela"
     cursor.execute(sql)
     row = cursor.fetchone()
     _dialog.findChild(QLineEdit, "txtSector").setText(row[1])
@@ -106,7 +104,16 @@ def loadData():
         _dialog.findChild(QLabel, "lblSector").setToolTip(row[0])
     else:
         _dialog.findChild(QLabel, "lblSector").setVisible(False)
-	
+		
+    _dialog.findChild(QLineEdit, "txtClass").setText(row[3])
+    if row[2]:
+        url = "classificacio\\"+row[2]+".htm"		
+        text = "<a href="+url+">Veure Normativa classificacio</a>"
+        _dialog.findChild(QLabel, "lblClass").setText(text)
+        _dialog.findChild(QLabel, "lblClass").setToolTip(row[3])
+    else:
+        _dialog.findChild(QLabel, "lblClass").setVisible(False)
+		
     # Dades claus
     i = 0
     sql = "SELECT qua_codi, qua_descripcio, per_int, tord_codi, tord_descripcio FROM data.rpt_planejament ORDER BY area_int DESC LIMIT "+str(MAX_CLAUS)
@@ -136,24 +143,21 @@ def loadData():
         _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False) 			
 		
     # Redibuix components	
-    _dialog.hideButtonBox()
-    #print _parent.width()	
-    #print _dialog.height()		
-    gb2Zones = _dialog.findChild(QGroupBox, "gb2Zones")
-    gb2Zones.setFixedHeight(gb2Zones.height() - offset)		
-    gb3Annex = _dialog.findChild(QGroupBox, "gb3Annex")
-    gb3Annex.move(gb3Annex.x(), gb3Annex.y() - offset)	
-    #_dialog.resize(200, 100)
-    #_dialog.setFixedSize(500, 300)	
+    _dialog.hideButtonBox()	
+    gbZones = _dialog.findChild(QGroupBox, "gbZones")
+    gbZones.setFixedHeight(gbZones.height() - offset)		
+    gbAnnex = _dialog.findChild(QGroupBox, "gbAnnex")
+    gbAnnex.move(gbAnnex.x(), gbAnnex.y() - offset)	
     _dialog.adjustSize();
 	
    
 def boldGroupBoxes():   
     
-    _dialog.findChild(QGroupBox, "gb1Ubicacio").setStyleSheet("QGroupBox { font-weight: bold; } ")
+    _dialog.findChild(QGroupBox, "gbUbicacio").setStyleSheet("QGroupBox { font-weight: bold; } ")
     _dialog.findChild(QGroupBox, "gbSector").setStyleSheet("QGroupBox { font-weight: bold; } ")	
-    _dialog.findChild(QGroupBox, "gb2Zones").setStyleSheet("QGroupBox { font-weight: bold; } ")
-    _dialog.findChild(QGroupBox, "gb3Annex").setStyleSheet("QGroupBox { font-weight: bold; } ")	
+    _dialog.findChild(QGroupBox, "gbClass").setStyleSheet("QGroupBox { font-weight: bold; } ")		
+    _dialog.findChild(QGroupBox, "gbZones").setStyleSheet("QGroupBox { font-weight: bold; } ")
+    _dialog.findChild(QGroupBox, "gbAnnex").setStyleSheet("QGroupBox { font-weight: bold; } ")	
     _dialog.findChild(QLabel, "lblTitle").setStyleSheet("QLabel { background-color: rgb(220, 220, 220); }");	
             	
 def fillReport():
@@ -196,6 +200,7 @@ def setSignals():
     # Parcela
     _dialog.findChild(QPushButton, "btnParcelaPdf").clicked.connect(openPdfUbicacio)  
     _dialog.findChild(QLabel, "lblSector").linkActivated.connect(openURL)		
+    _dialog.findChild(QLabel, "lblClass").linkActivated.connect(openURL)		
 	
     # Claus	
     _dialog.findChild(QPushButton, "btnClauPdf_1").clicked.connect(openPdfZones)  

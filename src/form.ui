@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>448</width>
-    <height>559</height>
+    <height>640</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -275,7 +275,7 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QGroupBox" name="gb1Ubicacio">
+  <widget class="QGroupBox" name="gbUbicacio">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -402,11 +402,11 @@
     </property>
    </widget>
   </widget>
-  <widget class="QGroupBox" name="gb2Zones">
+  <widget class="QGroupBox" name="gbZones">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>280</y>
+     <y>360</y>
      <width>421</width>
      <height>161</height>
     </rect>
@@ -674,11 +674,11 @@
     </property>
    </widget>
   </widget>
-  <widget class="QGroupBox" name="gb3Annex">
+  <widget class="QGroupBox" name="gbAnnex">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>450</y>
+     <y>530</y>
      <width>421</width>
      <height>91</height>
     </rect>
@@ -909,8 +909,86 @@
     <property name="text">
      <string>&lt;a href='condicions_generals.htm'&gt;Veure Normativa sector&lt;/a&gt;</string>
     </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
    </widget>
    <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>91</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Codi - Nom:</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="gbClass">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>280</y>
+     <width>421</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="title">
+    <string>Classificació</string>
+   </property>
+   <widget class="QLineEdit" name="txtClass">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>20</y>
+      <width>281</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblClass">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>45</y>
+      <width>191</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+      <underline>false</underline>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="text">
+     <string>&lt;a href='condicions_generals.htm'&gt;Veure Normativa classificació&lt;/a&gt;</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
     <property name="geometry">
      <rect>
       <x>20</x>
