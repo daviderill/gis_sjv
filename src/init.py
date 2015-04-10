@@ -36,13 +36,14 @@ def formOpen(dialog,layerid,featureid):
         # Connect to Database (only once, when loading map)
         showInfo("Attempting to connect to DB")
         connectDb()
-		
-	# If not, close previous dialog	
+				
+	# If not, close previous dialog	if already opened
     else:
-        _dialog.parent().setVisible(False) 
+        if _dialog.isVisible():
+            _dialog.parent().setVisible(False)			
 		
     # Get dialog and his widgets
-    _dialog = dialog	
+    _dialog = dialog		
     widgetsToGlobal()	
 		
     # Initial configuration
@@ -127,18 +128,18 @@ def loadData():
 		
     # Dades claus
     i = 0
-    sql = "SELECT qua_codi, qua_descripcio, per_int, tord_codi, tord_descripcio FROM data.rpt_planejament ORDER BY area_int DESC LIMIT "+str(MAX_CLAUS)
+    sql = "SELECT qua_codi, SUM(per_int), tord_codi, tord_descripcio FROM data.rpt_planejament GROUP BY qua_codi, tord_codi, tord_descripcio ORDER BY SUM(per_int) DESC LIMIT "+str(MAX_CLAUS)
     cursor.execute(sql)
     rows = cursor.fetchall()	
     for row in rows:	
         i = i+1
         _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setText(row[0])	
-        _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setText(str(row[2]))	
-        if row[3]:	
-            url = "ordenacions\\"+row[3]+".htm"
-            text = "<a href="+url+">"+row[4]+"</a>"	
+        _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setText(str(row[1]))	
+        if row[2]:	
+            url = "ordenacions\\"+row[2]+".htm"
+            text = "<a href="+url+">"+row[3]+"</a>"	
             _dialog.findChild(QLabel, "lblOrd_"+str(i)).setText(text)
-            _dialog.findChild(QLabel, "lblOrd_"+str(i)).setToolTip(u"Veure sistema d'ordenacio '"+row[4]+"'")	
+            _dialog.findChild(QLabel, "lblOrd_"+str(i)).setToolTip(u"Veure sistema d'ordenacio '"+row[3]+"'")	
         else:
             _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False) 	
 
@@ -255,7 +256,7 @@ def openURL(url):
     urlPath = "file://"+current_path+"\\html\\"+url	
     webbrowser.open(urlPath, 2)	
 
-	
+
 	
 if __name__ == '__main__':
     init()
