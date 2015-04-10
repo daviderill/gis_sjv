@@ -88,31 +88,37 @@ def initConfig():
 	
 	# Load data 
     loadData()	
+	
+	# Refresh map
+    _iface.mapCanvas().refresh()
 
 	
 def loadData():
 
-	# Dades parcela
+	# Dades parcela: sector i classificacio
     sql = "SELECT sec_codi, sec_descripcio, cla_codi, cla_descripcio FROM data.rpt_parcela"
     cursor.execute(sql)
     row = cursor.fetchone()
+	
     _dialog.findChild(QLineEdit, "txtSector").setText(row[1])
+    lblSector = _dialog.findChild(QLabel, "lblSector")
     if row[0]:
         url = "sectors\\"+row[0]+".htm"
         text = "<a href="+url+">Veure Normativa sector</a>"
-        _dialog.findChild(QLabel, "lblSector").setText(text)
-        _dialog.findChild(QLabel, "lblSector").setToolTip(row[0])
+        lblSector.setText(text)
+        lblSector.setToolTip(row[0])
     else:
-        _dialog.findChild(QLabel, "lblSector").setVisible(False)
+        lblSector.setVisible(False)
 		
     _dialog.findChild(QLineEdit, "txtClass").setText(row[3])
+    lblClass = _dialog.findChild(QLabel, "lblClass")
     if row[2]:
         url = "classificacio\\"+row[2]+".htm"		
-        text = "<a href="+url+">Veure Normativa classificacio</a>"
-        _dialog.findChild(QLabel, "lblClass").setText(text)
-        _dialog.findChild(QLabel, "lblClass").setToolTip(row[3])
+        text = "<a href="+url+">Veure Normativa classificaci&oacute;</a>"
+        lblClass.setText(text)
+        lblClass.setToolTip(row[3])
     else:
-        _dialog.findChild(QLabel, "lblClass").setVisible(False)
+        lblClass.setVisible(False)
 		
     # Dades claus
     i = 0
@@ -121,8 +127,6 @@ def loadData():
     rows = cursor.fetchall()	
     for row in rows:	
         i = i+1
-        #_dialog.findChild(QPushButton, "btnClauPdf_"+str(i)).clicked.connect(openClauPdf)  		
-        #_dialog.findChild(QLineEdit, "txtClau_"+i).setText(row[0]+" - "+row[1])
         _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setText(row[0])	
         _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setText(str(row[2]))	
         if row[3]:	
