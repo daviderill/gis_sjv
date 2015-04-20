@@ -80,7 +80,8 @@ BEGIN
 			AND ST_Intersects(parcela.geom, qua.geom)
 		ORDER BY area_int DESC
 	LOOP
-		v_sql:= 'INSERT INTO rpt_planejament (qua_codi, qua_descripcio, area_int, qg_tipus, qg_subzona, qg_definicio, tord_codi, tord_descripcio, 
+		v_sql:= 'INSERT INTO rpt_planejament (qua_codi, qua_descripcio, area_int, qg_tipus, qg_subzona, qg_definicio, 
+			sec_codi, sec_descripcio, cla_codi, cla_descripcio, tord_codi, tord_descripcio, 
 			hab_unifamiliar, hab_plurifamiliar, hab_rural, res_especial, res_mobil, hoteler, com_petit, com_mitja, com_gran,
 			oficines_serveis, restauracio, recreatiu, magatzem, industrial_1, industrial_2, industrial_3, industrial_4, industrial_5,
 			taller_reparacio, educatiu, sanitari, assistencial, cultural, associatiu, esportiu, serveis_publics, serveis_tecnics,
@@ -91,7 +92,8 @@ BEGIN
 			material_coberta, fusteria, espai_lliure, altell, altres, front_min, parce_min, prof_min
 			) VALUES 
 			('||quote_nullable(r_qua.codi)||', '||quote_nullable(r_qua.descripcio)||', '||r_qua.area_int||', '||quote_nullable(r_qua.tipus)||', '||quote_nullable(r_qua.subzona)||', 
-			'||quote_nullable(r_qua.definicio)||', '||quote_nullable(r_qua.tord_codi)||', '||quote_nullable(r_qua.tord_descripcio)||', '||quote_nullable(r_qua.hab_unifamiliar)||', '||quote_nullable(r_qua.hab_plurifamiliar)||', '||quote_nullable(r_qua.hab_rural)||',
+			'||quote_nullable(r_qua.definicio)||', '||quote_nullable(r_sec.codi)||', '||quote_nullable(r_sec.descripcio)||', '||quote_nullable(r_cla.codi)||', '||quote_nullable(r_cla.descripcio)||',
+			'||quote_nullable(r_qua.tord_codi)||', '||quote_nullable(r_qua.tord_descripcio)||', '||quote_nullable(r_qua.hab_unifamiliar)||', '||quote_nullable(r_qua.hab_plurifamiliar)||', '||quote_nullable(r_qua.hab_rural)||',
 			'||quote_nullable(r_qua.res_especial)||', '||quote_nullable(r_qua.res_mobil)||', '||quote_nullable(r_qua.hoteler)||', '||quote_nullable(r_qua.com_petit)||', '||quote_nullable(r_qua.com_mitja)||',
 			'||quote_nullable(r_qua.com_gran)||', '||quote_nullable(r_qua.oficines_serveis)||', '||quote_nullable(r_qua.restauracio)||', '||quote_nullable(r_qua.recreatiu)||', '||quote_nullable(r_qua.magatzem)||',
 			'||quote_nullable(r_qua.industrial_1)||', '||quote_nullable(r_qua.industrial_2)||', '||quote_nullable(r_qua.industrial_3)||', '||quote_nullable(r_qua.industrial_4)||', '||quote_nullable(r_qua.industrial_5)||',
@@ -128,7 +130,6 @@ BEGIN
 END;
  
 $BODY$
-  LANGUAGE 'plpgsql' VOLATILE COST 100
-;
+  LANGUAGE 'plpgsql' VOLATILE COST 100;
 
 ALTER FUNCTION "data"."fill_report"(p_parcela int8) OWNER TO "gisadmin";
