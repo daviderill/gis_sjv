@@ -15,6 +15,9 @@ CREATE TABLE "data"."rpt_parcela" (
 "sec_descripcio" varchar(200),
 "cla_codi" varchar(10),
 "cla_descripcio" varchar(200),
+"cat_tipo_via" varchar,
+"cat_nombre_via" varchar,
+"cat_primer_numero_policia" varchar,
 PRIMARY KEY ("par_ninterno") 
 );
 ALTER TABLE "data"."rpt_parcela" OWNER TO "gisadmin";

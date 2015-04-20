@@ -5,6 +5,7 @@ DECLARE
 	r_par record;
 	r_sec record;
 	r_cla record;
+	r_cat record;
 	r_qua record;
 	v_sql varchar;
 	v_sector varchar;
@@ -15,7 +16,7 @@ DECLARE
 BEGIN
 
 	-- Afegim al paràmetre de sistema search_path tots els esquemes
-	SET search_path TO carto, data, planejament_urba, public;
+	SET search_path TO cadastre, carto, data, planejament_urba, public;
 
 	-- Creació taula de report
 	--PERFORM create_report();
@@ -45,9 +46,18 @@ BEGIN
 	ORDER BY area_int DESC
 	LIMIT 1;
 
+	-- Obtenim adreça
+	SELECT tipo_via, nombre_via, primer_numero_policia
+	INTO r_cat
+	FROM cat_11 INNER JOIN parcela ON cat_11.parcela_catastral = parcela.refcat
+	WHERE parcela.ninterno = p_parcela;
+
 	-- Omplim taula de report principal
-	v_sql:= 'INSERT INTO rpt_parcela (par_ninterno, par_refcat, par_area, sec_codi, sec_descripcio, cla_codi, cla_descripcio) VALUES 
-		('||p_parcela||', '||quote_nullable(r_par.refcat)||', '||r_par.area||', '||quote_nullable(r_sec.codi)||', '||quote_nullable(r_sec.descripcio)||', '||quote_nullable(r_cla.codi)||', '||quote_nullable(r_cla.descripcio)||')';
+	v_sql:= 'INSERT INTO rpt_parcela (par_ninterno, par_refcat, par_area, sec_codi, sec_descripcio, cla_codi, cla_descripcio, 
+		cat_tipo_via, cat_nombre_via, cat_primer_numero_policia
+		) VALUES 
+		('||p_parcela||', '||quote_nullable(r_par.refcat)||', '||r_par.area||', '||quote_nullable(r_sec.codi)||', '||quote_nullable(r_sec.descripcio)||', 
+		'||quote_nullable(r_cla.codi)||', '||quote_nullable(r_cla.descripcio)||', '||quote_nullable(r_cat.tipo_via)||', '||quote_nullable(r_cat.nombre_via)||', '||quote_nullable(r_cat.primer_numero_policia)||')';
 	EXECUTE v_sql;
 
 	-- Actualitzar geometria
