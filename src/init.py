@@ -17,7 +17,7 @@ import getpass
 def formOpen(dialog,layerid,featureid):
 
     global _dialog, _iface, current_path, current_date
-    global MSG_DURATION, MAX_CLAUS
+    global MSG_DURATION, MAX_CLAUS, PDF_UBICACIO, PDF_ZONES
        
     # Check if it is the first time we execute this module
     if isFirstTime():
@@ -31,7 +31,8 @@ def formOpen(dialog,layerid,featureid):
         # Set constants
         MSG_DURATION = 5
         MAX_CLAUS = 4	
-        #print getpass.getuser()		
+        PDF_UBICACIO = 0
+        PDF_ZONES = 1
 
         # Connect to Database (only once, when loading map)
         showInfo("Attempting to connect to DB")
@@ -101,8 +102,8 @@ def initConfig():
 	
 def loadData():
 
-	# Dades parcela: sector i classificacio
-    sql = "SELECT sec_codi, sec_descripcio, cla_codi, cla_descripcio FROM data.rpt_parcela"
+	# Dades parcela: sector, classificacio i adreca
+    sql = "SELECT sec_codi, sec_descripcio, cla_codi, cla_descripcio, (cat_tipo_via || ' ' || cat_nombre_via || ' ' || cat_primer_numero_policia) as adreca FROM data.rpt_parcela"
     cursor.execute(sql)
     row = cursor.fetchone()
 	
@@ -126,6 +127,8 @@ def loadData():
     else:
         lblClass.setVisible(False)
 		
+    _dialog.findChild(QLineEdit, "txtAdreca").setText(row[4])
+	
     # Dades claus
     i = 0
     sql = "SELECT qua_codi, SUM(per_int), tord_codi, tord_descripcio FROM data.rpt_planejament GROUP BY qua_codi, tord_codi, tord_descripcio ORDER BY SUM(per_int) DESC LIMIT "+str(MAX_CLAUS)
@@ -170,11 +173,13 @@ def boldGroupBoxes():
     _dialog.findChild(QGroupBox, "gbAnnex").setStyleSheet("QGroupBox { font-weight: bold; } ")	
     _dialog.findChild(QLabel, "lblTitle").setStyleSheet("QLabel { background-color: rgb(220, 220, 220); }");	
             	
+def createReport():
+    sql = "SELECT data.create_report()"
+    executeSql(sql)
+	
 def fillReport():
-
     param = ninterno.text()
     sql = "SELECT data.fill_report("+str(param)+")"
-    #print "executeSql: "+str(sql)
     executeSql(sql)
     
 def getResult(sql):
@@ -227,7 +232,7 @@ def setSignals():
 # Slots
 def openPdfUbicacio():
 
-    composerView = _iface.activeComposers()[1].composition()
+    composerView = _iface.activeComposers()[PDF_UBICACIO].composition()
     composerView.setAtlasMode(QgsComposition.PreviewAtlas) 	
     filePath = current_path+"\\reports\\"+refcat.text()+"_ubicacio.pdf"
     result = composerView.exportAsPDF(filePath)
@@ -240,7 +245,7 @@ def openPdfUbicacio():
 	
 def openPdfZones():
 
-    composerView = _iface.activeComposers()[0].composition()
+    composerView = _iface.activeComposers()[PDF_ZONES].composition()
     composerView.setAtlasMode(QgsComposition.PreviewAtlas) 	
     filePath = current_path+"\\reports\\"+refcat.text()+"_zones.pdf"
     result = composerView.exportAsPDF(filePath)
@@ -249,6 +254,25 @@ def openPdfZones():
         os.startfile(filePath)		
     else:
         showWarning("PDF could not be generated in: "+filePath)
+
+	
+# TODO: Export Atlas as images -> Export Atlas as PDF	
+def openPdfZones_test():	
+
+    composerView = _iface.activeComposers()[1].composition()
+    composerView.setAtlasMode(QgsComposition.PreviewAtlas) 	
+	
+    # Setup Atlas
+    myAtlas = QgsAtlasComposition(composerView)
+    print myAtlas.currentFilename()
+    #myAtlas.setCoverageLayer(atlas_desktop) # Atlas run from desktop_search
+    #myAtlas.setComposerMap(myAtlasMap)
+    #myAtlas.setFixedScale(True)
+    #myAtlas.fixedScale()
+    #myAtlas.setHideCoverage(False)
+    #myAtlas.setFilterFeatures(True)
+    #myAtlas.setFeatureFilter("reference = '%s'" % (str(ref)))
+    #myAtlas.setFilterFeatures(True)
 
 	
 def openURL(url):
