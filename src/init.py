@@ -1,7 +1,6 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 from utils import *
 from datetime import datetime
@@ -11,14 +10,13 @@ import psycopg2
 import psycopg2.extras
 import sys
 import webbrowser
-import getpass
 
 
 def formOpen(dialog,layerid,featureid):
 
-    global _dialog, _iface, current_path, current_date
+    global _dialog, _iface, current_path, current_date, report_folder
     global MSG_DURATION, MAX_CLAUS, PDF_UBICACIO, PDF_ZONES
-       
+    
     # Check if it is the first time we execute this module
     if isFirstTime():
           
@@ -26,8 +24,10 @@ def formOpen(dialog,layerid,featureid):
         current_path = os.path.dirname(os.path.abspath(__file__))
         date_aux = time.strftime("%d/%m/%Y")
         current_date = datetime.strptime(date_aux, "%d/%m/%Y")
-        _iface = iface
-		
+        report_folder = current_path+"/reports/"            
+        _iface = iface        
+        setInterface(iface)
+        
         # Set constants
         MSG_DURATION = 5
         MAX_CLAUS = 4	
@@ -37,16 +37,17 @@ def formOpen(dialog,layerid,featureid):
         # Connect to Database (only once, when loading map)
         showInfo("Attempting to connect to DB")
         connectDb()
-				
-	# If not, close previous dialog	if already opened
+
+    # If not, close previous dialog	if already opened
     else:
         if _dialog.isVisible():
             _dialog.parent().setVisible(False)			
-		
+       
     # Get dialog and his widgets
-    _dialog = dialog		
+    _dialog = dialog
+    setDialog(dialog)        
     widgetsToGlobal()	
-		
+
     # Initial configuration
     initConfig()
     
@@ -56,10 +57,11 @@ def init():
     fillReport()
 
 def initAction(ninterno):
-    global param
+    global param  
     param = ninterno
     connectDb()
     fillReport()
+
 
 def connectDb():
 
@@ -70,6 +72,7 @@ def connectDb():
     except psycopg2.DatabaseError, e:
         print 'Error %s' % e    
         sys.exit(1)
+        
 
 def widgetsToGlobal():
 
@@ -80,8 +83,8 @@ def widgetsToGlobal():
     area = _dialog.findChild(QLineEdit, "area")        
     lblCondGenerals = _dialog.findChild(QLabel, "lblCondGenerals")   	
     ninterno.setVisible(False)
-	
-	
+
+
 def initConfig():    
     
     # Wire up our own signals
@@ -89,24 +92,24 @@ def initConfig():
     
     # Other default configuration
     boldGroupBoxes()
-	
-	# Fill report tables
+
+    # Fill report tables
     fillReport()
-	
-	# Load data 
+
+    # Load data 
     loadData()	
-	
-	# Refresh map
+
+    # Refresh map
     _iface.mapCanvas().refresh()
 
-	
+
 def loadData():
 
-	# Dades parcela: sector, classificacio i adreca
+    # Dades parcela: sector, classificacio i adreca
     sql = "SELECT sec_codi, sec_descripcio, cla_codi, cla_descripcio, (cat_tipo_via || ' ' || cat_nombre_via || ' ' || cat_primer_numero_policia) as adreca FROM data.rpt_parcela"
     cursor.execute(sql)
     row = cursor.fetchone()
-	
+
     _dialog.findChild(QLineEdit, "txtSector").setText(row[1])
     lblSector = _dialog.findChild(QLabel, "lblSector")
     if row[0]:
@@ -116,7 +119,7 @@ def loadData():
         lblSector.setToolTip(row[0])
     else:
         lblSector.setVisible(False)
-		
+
     _dialog.findChild(QLineEdit, "txtClass").setText(row[3])
     lblClass = _dialog.findChild(QLabel, "lblClass")
     if row[2]:
@@ -126,9 +129,9 @@ def loadData():
         lblClass.setToolTip(row[3])
     else:
         lblClass.setVisible(False)
-		
+
     _dialog.findChild(QLineEdit, "txtAdreca").setText(row[4])
-	
+
     # Dades claus
     i = 0
     sql = "SELECT qua_codi, SUM(per_int), tord_codi, tord_descripcio FROM data.rpt_planejament GROUP BY qua_codi, tord_codi, tord_descripcio ORDER BY SUM(per_int) DESC LIMIT "+str(MAX_CLAUS)
@@ -154,7 +157,7 @@ def loadData():
         _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setVisible(False)	
         _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setVisible(False)
         _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False) 			
-		
+
     # Redibuix components	
     _dialog.hideButtonBox()	
     gbZones = _dialog.findChild(QGroupBox, "gbZones")
@@ -162,7 +165,7 @@ def loadData():
     gbAnnex = _dialog.findChild(QGroupBox, "gbAnnex")
     gbAnnex.move(gbAnnex.x(), gbAnnex.y() - offset)	
     _dialog.adjustSize();
-	
+
    
 def boldGroupBoxes():   
     
@@ -172,11 +175,11 @@ def boldGroupBoxes():
     _dialog.findChild(QGroupBox, "gbZones").setStyleSheet("QGroupBox { font-weight: bold; } ")
     _dialog.findChild(QGroupBox, "gbAnnex").setStyleSheet("QGroupBox { font-weight: bold; } ")	
     _dialog.findChild(QLabel, "lblTitle").setStyleSheet("QLabel { background-color: rgb(220, 220, 220); }");	
-            	
+    
 def createReport():
     sql = "SELECT data.create_report()"
     executeSql(sql)
-	
+
 def fillReport():
     param = ninterno.text()
     sql = "SELECT data.fill_report("+str(param)+")"
@@ -193,22 +196,8 @@ def getResult(sql):
 def executeSql(sql):
     cursor.execute(sql)
     conn.commit()
-	
-def showInfo(text, duration = None):
-    
-    if duration is None:
-        _iface.messageBar().pushMessage("", text, QgsMessageBar.INFO, MSG_DURATION)  
-    else:
-        _iface.messageBar().pushMessage("", text, QgsMessageBar.INFO, duration)              
-    
-def showWarning(text, duration = None):
-    
-    if duration is None:
-        _iface.messageBar().pushMessage("", text, QgsMessageBar.WARNING, MSG_DURATION)  
-    else:
-        _iface.messageBar().pushMessage("", text, QgsMessageBar.WARNING, duration)  
 
-		
+
 # Wire up our own signals    
 def setSignals():
   
@@ -216,71 +205,120 @@ def setSignals():
     _dialog.findChild(QPushButton, "btnParcelaPdf").clicked.connect(openPdfUbicacio)  
     _dialog.findChild(QLabel, "lblSector").linkActivated.connect(openURL)		
     _dialog.findChild(QLabel, "lblClass").linkActivated.connect(openURL)		
-	
+
     # Claus	
     _dialog.findChild(QPushButton, "btnClauPdf_1").clicked.connect(openPdfZones)  
     _dialog.findChild(QLabel, "lblOrd_1").linkActivated.connect(openURL)	
-	
-	# Annex
+
+    # Annex
     _dialog.findChild(QLabel, "lblCondGenerals").linkActivated.connect(openURL)	
     _dialog.findChild(QLabel, "lblParamFinca").linkActivated.connect(openURL)
     _dialog.findChild(QLabel, "lblParamEdificacio").linkActivated.connect(openURL)	
     _dialog.findChild(QLabel, "lblDotacioAparc").linkActivated.connect(openURL)
     _dialog.findChild(QLabel, "lblRegulacioAparc").linkActivated.connect(openURL)
-	
-	
+
+
 # Slots
 def openPdfUbicacio():
 
-    composerView = _iface.activeComposers()[PDF_UBICACIO].composition()
-    composerView.setAtlasMode(QgsComposition.PreviewAtlas) 	
-    filePath = current_path+"\\reports\\"+refcat.text()+"_ubicacio.pdf"
-    result = composerView.exportAsPDF(filePath)
+    myComposition = _iface.activeComposers()[PDF_UBICACIO].composition()
+    myComposition.setAtlasMode(QgsComposition.PreviewAtlas) 	
+    filePath = report_folder+refcat.text()+"_ubicacio.pdf"
+    result = myComposition.exportAsPDF(filePath)
     if result:
         showInfo("PDF generated in: "+filePath)
         os.startfile(filePath)
     else:
         showWarning("PDF could not be generated in: "+filePath)
+        
+        
+def openPdfZones():    
 
-	
-def openPdfZones():
+    # Get composition and Atlas
+    myComposition = _iface.activeComposers()[PDF_ZONES].composition()   
+    myComposition.setAtlasMode(QgsComposition.ExportAtlas)         
+    myAtlas = myComposition.atlasComposition() 
+    myAtlas.setSingleFile(True)
 
-    composerView = _iface.activeComposers()[PDF_ZONES].composition()
-    composerView.setAtlasMode(QgsComposition.PreviewAtlas) 	
-    filePath = current_path+"\\reports\\"+refcat.text()+"_zones.pdf"
-    result = composerView.exportAsPDF(filePath)
-    if result:
-        showInfo("PDF generated in: "+filePath)
-        os.startfile(filePath)		
-    else:
-        showWarning("PDF could not be generated in: "+filePath)
+    filePath = report_folder+refcat.text()+"_zones.pdf"
+    #print "filePath: "+filePath   
+    #print "num. features: "+str(myAtlas.numFeatures())   
+     
+    # Prepare for first feature, so that we know paper size to begin with
+    printer = QPrinter()
+    painter = QPainter()
+    myAtlas.beginRender()     
+    myAtlas.prepareForFeature(0)
+    myComposition.beginPrintAsPDF(printer, filePath)
+    
+    # Set the correct resolution
+    myComposition.beginPrint(printer)
+    printReady = painter.begin(printer)
+    if not printReady:
+        showWarning("PDF could not be generated at: "+filePath)    
+        return    
+    
+    progress = QProgressDialog("Rendering maps...", "Abort", 0, myAtlas.numFeatures())
+    QApplication.setOverrideCursor(Qt.BusyCursor)
+    
+    for featureI in range(0, myAtlas.numFeatures()):
+        print "feature: "+str(featureI)              
+        progress.setValue(featureI+1)
+        # Process input events in order to allow aborting
+        QCoreApplication.processEvents()
+        if progress.wasCanceled():
+            myAtlas.endRender()
+            break
+        if not myAtlas.prepareForFeature(featureI):
+            showWarning("Atlas processing error")                
+            progress.cancel()
+            QApplication.restoreOverrideCursor()
+            return
+        # Start print on a new page if we're not on the first feature
+        if featureI > 0:
+            printer.newPage()
+        myComposition.doPrint(printer, painter)
+    
+    myAtlas.endRender()
+    painter.end()
+    QApplication.restoreOverrideCursor()      
+    
+    # Show message and open PDF
+    showInfo("PDF generated in: "+filePath)
+    os.startfile(filePath)       
 
-	
-# TODO: Export Atlas as images -> Export Atlas as PDF	
-def openPdfZones_test():	
 
-    composerView = _iface.activeComposers()[1].composition()
-    composerView.setAtlasMode(QgsComposition.PreviewAtlas) 	
-	
-    # Setup Atlas
-    myAtlas = QgsAtlasComposition(composerView)
-    print myAtlas.currentFilename()
-    #myAtlas.setCoverageLayer(atlas_desktop) # Atlas run from desktop_search
-    #myAtlas.setComposerMap(myAtlasMap)
-    #myAtlas.setFixedScale(True)
-    #myAtlas.fixedScale()
-    #myAtlas.setHideCoverage(False)
-    #myAtlas.setFilterFeatures(True)
-    #myAtlas.setFeatureFilter("reference = '%s'" % (str(ref)))
-    #myAtlas.setFilterFeatures(True)
+def openPdfZones_multi():	
 
-	
+    myComposition = _iface.activeComposers()[PDF_ZONES].composition()   
+    myComposition.setAtlasMode(QgsComposition.ExportAtlas)         
+    myAtlas = myComposition.atlasComposition() 
+    myAtlas.setSingleFile(False)
+   
+    # Generate atlas 
+    #print "num. features: "+str(myAtlas.numFeatures())    
+    myAtlas.beginRender()     
+    for i in range(0, myAtlas.numFeatures()): 
+        #print "feature: "+str(i)            
+        myAtlas.prepareForFeature(i)       
+        filePath = report_folder+refcat.text()+"_"+myAtlas.currentFilename()+".pdf"
+        #print "filePath: "+filePath         
+        result = myComposition.exportAsPDF(filePath)        
+        if result:
+            showInfo("PDF generated in: "+filePath)
+            #os.startfile(filePath)        
+        else:
+            showWarning("PDF could not be generated in: "+filePath)               
+        
+    myAtlas.endRender()  
+
+
 def openURL(url):
 
     urlPath = "file://"+current_path+"\\html\\"+url	
     webbrowser.open(urlPath, 2)	
 
 
-	
-if __name__ == '__main__':
-    init()
+
+#if __name__ == '__main__':
+#    init()
