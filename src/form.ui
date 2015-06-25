@@ -294,7 +294,7 @@
     </font>
    </property>
    <property name="title">
-    <string>Ubicació</string>
+    <string>Ubicació (dades cadastrals)</string>
    </property>
    <widget class="QPushButton" name="btnParcelaPdf">
     <property name="geometry">
@@ -849,7 +849,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>../Imatges/Logos/ESC0401.png</pixmap>
+    <pixmap>img/ESC0401.png</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
