@@ -6,12 +6,12 @@ DECLARE
 	r_sec record;
 	r_cla record;
 	r_cat record;
+	r_alc record;
 	r_qua record;
 	v_sql varchar;
 	v_sector varchar;
 	v_out varchar;
 	max_id int8;
-
 
 BEGIN
 
@@ -65,6 +65,22 @@ BEGIN
 		SET par_geom = parcela.geom
 		FROM parcela
 		WHERE parcela.ninterno = '||p_parcela;
+	EXECUTE v_sql;
+
+	-- Obtenim alçades reguladores a través intersecció de les dues capes
+	FOR r_alc IN
+		SELECT alc.alcada, alc.area, ST_Area(ST_Intersection(parcela.geom, alc.geom)) AS area_int
+		FROM parcela, alcades_reguladores AS alc
+		WHERE parcela.ninterno = p_parcela
+			AND ST_Intersects(parcela.geom, alc.geom)
+		ORDER BY alc.alcada
+	LOOP
+		v_sql:= 'UPDATE rpt_parcela SET alc_'||r_alc.alcada||' = '||r_alc.area_int||' WHERE par_ninterno = '||p_parcela;
+		EXECUTE v_sql;        
+	END LOOP;
+
+    -- Calculem àrea de les alçades no definides
+	v_sql:= 'UPDATE rpt_parcela SET alc_res = par_area - (COALESCE(alc_0p, 0) + COALESCE(alc_1p, 0) + COALESCE(alc_2p, 0) + COALESCE(alc_3p, 0) + COALESCE(alc_4p, 0) + COALESCE(alc_5p, 0))';
 	EXECUTE v_sql;
 
 	-- Obtenim dades de les N qualificacions a través intersecció de les dues capes

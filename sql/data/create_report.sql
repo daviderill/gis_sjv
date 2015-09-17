@@ -18,6 +18,13 @@ CREATE TABLE "data"."rpt_parcela" (
 "cat_tipo_via" varchar,
 "cat_nombre_via" varchar,
 "cat_primer_numero_policia" varchar,
+"alc_0p" numeric(14,4),
+"alc_1p" numeric(14,4),
+"alc_2p" numeric(14,4),
+"alc_3p" numeric(14,4),
+"alc_4p" numeric(14,4),
+"alc_5p" numeric(14,4),
+"alc_res" numeric(14,4),
 PRIMARY KEY ("par_ninterno") 
 );
 ALTER TABLE "data"."rpt_parcela" OWNER TO "gisadmin";
