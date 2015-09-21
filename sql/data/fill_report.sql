@@ -18,9 +18,6 @@ BEGIN
 	-- Afegim al paràmetre de sistema search_path tots els esquemes
 	SET search_path TO cadastre, carto, data, planejament_urba, public;
 
-	-- Creació taula de report
-	--PERFORM create_report();
-
 	-- Borrem contingut previ de les taules de report
 	DELETE FROM rpt_parcela;
 	DELETE FROM rpt_planejament;
@@ -65,22 +62,6 @@ BEGIN
 		SET par_geom = parcela.geom
 		FROM parcela
 		WHERE parcela.ninterno = '||p_parcela;
-	EXECUTE v_sql;
-
-	-- Obtenim alçades reguladores a través intersecció de les dues capes
-	FOR r_alc IN
-		SELECT alc.alcada, alc.area, ST_Area(ST_Intersection(parcela.geom, alc.geom)) AS area_int
-		FROM parcela, alcades_reguladores AS alc
-		WHERE parcela.ninterno = p_parcela
-			AND ST_Intersects(parcela.geom, alc.geom)
-		ORDER BY alc.alcada
-	LOOP
-		v_sql:= 'UPDATE rpt_parcela SET alc_'||r_alc.alcada||' = '||r_alc.area_int||' WHERE par_ninterno = '||p_parcela;
-		EXECUTE v_sql;        
-	END LOOP;
-
-    -- Calculem àrea de les alçades no definides
-	v_sql:= 'UPDATE rpt_parcela SET alc_res = par_area - (COALESCE(alc_0p, 0) + COALESCE(alc_1p, 0) + COALESCE(alc_2p, 0) + COALESCE(alc_3p, 0) + COALESCE(alc_4p, 0) + COALESCE(alc_5p, 0))';
 	EXECUTE v_sql;
 
 	-- Obtenim dades de les N qualificacions a través intersecció de les dues capes
@@ -149,7 +130,22 @@ BEGIN
 	END LOOP;
 
 	-- Eliminem registres que tinguin un percentatge d'intersecció inferior al 5%
-	DELETE FROM rpt_planejament WHERE per_int < 5;
+	DELETE FROM rpt_planejament WHERE per_int < 3;
+    
+	-- Obtenim alçades reguladores a través intersecció de les dues capes
+	FOR r_alc IN
+		SELECT rpt.qua_codi, alc.alcada, alc.area, ST_Area(ST_Intersection(rpt.qua_geom, alc.geom)) AS area_int
+		FROM rpt_planejament as rpt, alcades_reguladores AS alc
+		WHERE ST_Intersects(rpt.qua_geom, alc.geom)
+		ORDER BY rpt.qua_codi, alc.alcada
+	LOOP
+		v_sql:= 'UPDATE rpt_planejament SET alc_'||r_alc.alcada||' = '||r_alc.area_int||' WHERE qua_codi = '||quote_literal(r_alc.qua_codi);
+		EXECUTE v_sql;        
+	END LOOP;    
+
+    -- Calculem àrea de les alçades no definides
+	--v_sql:= 'UPDATE rpt_planejament SET alc_res = '||r_par.area||' - (COALESCE(alc_0p, 0) + COALESCE(alc_1p, 0) + COALESCE(alc_2p, 0) + COALESCE(alc_3p, 0) + COALESCE(alc_4p, 0) + COALESCE(alc_5p, 0))';
+	--EXECUTE v_sql;
 
 	RETURN v_out;
 

@@ -7,15 +7,7 @@ import os.path
 
 #	
 # Utility funcions	
-#
-def setGlobals(p_dialog, p_iface):
-    
-    global _dialog, _iface, MSG_DURATION
-    _dialog = p_dialog
-    _iface = p_iface
-    MSG_DURATION = 5    
-    
-    
+# 
 def setDialog(p_dialog):
     
     global _dialog
