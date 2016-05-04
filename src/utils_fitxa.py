@@ -42,7 +42,6 @@ def fillComboBox(widget, sql):
     elem = _dialog.findChild(QComboBox, widget)
     elem.clear()	
     elem.addItem("")	
-    print sql
     if not 'cursor' in globals():
         print "cursor error"
         return

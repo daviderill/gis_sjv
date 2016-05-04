@@ -1,15 +1,15 @@
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
+from PyQt4.QtCore import * #@UnusedWildImport
+from PyQt4.QtGui import *  #@UnusedWildImport
+from qgis.core import *    #@UnusedWildImport
 from qgis.utils import iface
-from utils import *
 from datetime import datetime
 import time
-import os.path
+import os.path             #@UnusedWildImport
 import psycopg2
 import psycopg2.extras
 import sys
 import webbrowser
+from utils_fitxa import *  #@UnusedWildImport
 
 
 def formOpen(dialog,layerid,featureid):
@@ -24,13 +24,13 @@ def formOpen(dialog,layerid,featureid):
         current_path = os.path.dirname(os.path.abspath(__file__))
         date_aux = time.strftime("%d/%m/%Y")
         current_date = datetime.strptime(date_aux, "%d/%m/%Y")
-        report_folder = current_path+"/reports/"            
+        report_folder = current_path+"/reports/"
         _iface = iface        
         setInterface(iface)
         
         # Set constants
         MSG_DURATION = 5
-        MAX_CLAUS = 4	
+        MAX_CLAUS = 4
         PDF_UBICACIO = 0
         PDF_ZONES = 1
 
@@ -41,12 +41,12 @@ def formOpen(dialog,layerid,featureid):
     # If not, close previous dialog	if already opened
     else:
         if _dialog.isVisible():
-            _dialog.parent().setVisible(False)			
+            _dialog.parent().setVisible(False)
        
     # Get dialog and his widgets
     _dialog = dialog
-    setDialog(dialog)        
-    widgetsToGlobal()	
+    setDialog(dialog)
+    widgetsToGlobal()
 
     # Initial configuration
     initConfig()
@@ -70,7 +70,7 @@ def connectDb():
         conn = psycopg2.connect("host=gisserver port=5432 dbname=gis_sjv user=gisadmin password=8u9ijn")
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     except psycopg2.DatabaseError, e:
-        print 'Error %s' % e    
+        print 'Error %s' % e
         sys.exit(1)
         
 
@@ -78,10 +78,10 @@ def widgetsToGlobal():
 
     global ninterno, refcat, area, lblCondGenerals
 
-    ninterno = _dialog.findChild(QLineEdit, "ninterno") 	
-    refcat = _dialog.findChild(QLineEdit, "refcat")            
-    area = _dialog.findChild(QLineEdit, "area")        
-    lblCondGenerals = _dialog.findChild(QLabel, "lblCondGenerals")   	
+    ninterno = _dialog.findChild(QLineEdit, "ninterno")
+    refcat = _dialog.findChild(QLineEdit, "refcat")
+    area = _dialog.findChild(QLineEdit, "area")
+    lblCondGenerals = _dialog.findChild(QLabel, "lblCondGenerals")
     ninterno.setVisible(False)
 
 
@@ -97,7 +97,7 @@ def initConfig():
     fillReport()
 
     # Load data 
-    loadData()	
+    loadData()
 
     # Refresh map
     _iface.mapCanvas().refresh()
@@ -123,7 +123,7 @@ def loadData():
     _dialog.findChild(QLineEdit, "txtClass").setText(row[3])
     lblClass = _dialog.findChild(QLabel, "lblClass")
     if row[2]:
-        url = "classificacio\\"+row[2]+".htm"		
+        url = "classificacio\\"+row[2]+".htm"
         text = "<a href="+url+">Veure Normativa classificaci&oacute;</a>"
         lblClass.setText(text)
         lblClass.setToolTip(row[3])
@@ -136,32 +136,32 @@ def loadData():
     i = 0
     sql = "SELECT qua_codi, SUM(per_int), tord_codi, tord_descripcio FROM data.rpt_planejament GROUP BY qua_codi, tord_codi, tord_descripcio ORDER BY SUM(per_int) DESC LIMIT "+str(MAX_CLAUS)
     cursor.execute(sql)
-    rows = cursor.fetchall()	
-    for row in rows:	
+    rows = cursor.fetchall()
+    for row in rows:
         i = i+1
-        _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setText(row[0])	
-        _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setText(str(row[1]))	
-        if row[2]:	
+        _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setText(row[0])
+        _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setText(str(row[1]))
+        if row[2]:
             url = "ordenacions\\"+row[2]+".htm"
-            text = "<a href="+url+">"+row[3]+"</a>"	
+            text = "<a href="+url+">"+row[3]+"</a>"
             _dialog.findChild(QLabel, "lblOrd_"+str(i)).setText(text)
-            _dialog.findChild(QLabel, "lblOrd_"+str(i)).setToolTip(u"Veure sistema d'ordenacio '"+row[3]+"'")	
+            _dialog.findChild(QLabel, "lblOrd_"+str(i)).setToolTip(u"Veure sistema d'ordenacio '"+row[3]+"'")
         else:
-            _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False) 	
+            _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False)
 
-    # Ocultar controls	
-    offset = 0		
+    # Ocultar controls
+    offset = 0
     while i<MAX_CLAUS:
         i = i+1
-        offset = offset+30	
-        _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setVisible(False)	
+        offset = offset+30
+        _dialog.findChild(QLineEdit, "txtClau_"+str(i)).setVisible(False)
         _dialog.findChild(QLineEdit, "txtPer_"+str(i)).setVisible(False)
-        _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False) 			
+        _dialog.findChild(QLabel, "lblOrd_"+str(i)).setVisible(False)
 
-    # Redibuix components	
-    _dialog.hideButtonBox()	
+    # Redibuix components
+    _dialog.hideButtonBox()
     gbZones = _dialog.findChild(QGroupBox, "gbZones")
-    gbZones.setFixedHeight(gbZones.height() - offset)		
+    gbZones.setFixedHeight(gbZones.height() - offset)
     gbAnnex = _dialog.findChild(QGroupBox, "gbAnnex")
     gbAnnex.move(gbAnnex.x(), gbAnnex.y() - offset)	
     _dialog.adjustSize();
@@ -170,11 +170,11 @@ def loadData():
 def boldGroupBoxes():   
     
     _dialog.findChild(QGroupBox, "gbUbicacio").setStyleSheet("QGroupBox { font-weight: bold; } ")
-    _dialog.findChild(QGroupBox, "gbSector").setStyleSheet("QGroupBox { font-weight: bold; } ")	
-    _dialog.findChild(QGroupBox, "gbClass").setStyleSheet("QGroupBox { font-weight: bold; } ")		
+    _dialog.findChild(QGroupBox, "gbSector").setStyleSheet("QGroupBox { font-weight: bold; } ")
+    _dialog.findChild(QGroupBox, "gbClass").setStyleSheet("QGroupBox { font-weight: bold; } ")
     _dialog.findChild(QGroupBox, "gbZones").setStyleSheet("QGroupBox { font-weight: bold; } ")
-    _dialog.findChild(QGroupBox, "gbAnnex").setStyleSheet("QGroupBox { font-weight: bold; } ")	
-    _dialog.findChild(QLabel, "lblTitle").setStyleSheet("QLabel { background-color: rgb(220, 220, 220); }");	
+    _dialog.findChild(QGroupBox, "gbAnnex").setStyleSheet("QGroupBox { font-weight: bold; } ")
+    _dialog.findChild(QLabel, "lblTitle").setStyleSheet("QLabel { background-color: rgb(220, 220, 220); }");
     
 def createReport():
     sql = "SELECT data.create_report()"
@@ -202,18 +202,18 @@ def executeSql(sql):
 def setSignals():
   
     # Parcela
-    _dialog.findChild(QPushButton, "btnParcelaPdf").clicked.connect(openPdfUbicacio)  
-    _dialog.findChild(QLabel, "lblSector").linkActivated.connect(openURL)		
-    _dialog.findChild(QLabel, "lblClass").linkActivated.connect(openURL)		
+    _dialog.findChild(QPushButton, "btnParcelaPdf").clicked.connect(openPdfUbicacio)
+    _dialog.findChild(QLabel, "lblSector").linkActivated.connect(openURL)
+    _dialog.findChild(QLabel, "lblClass").linkActivated.connect(openURL)
 
     # Claus	
-    _dialog.findChild(QPushButton, "btnClauPdf_1").clicked.connect(openPdfZones)  
-    _dialog.findChild(QLabel, "lblOrd_1").linkActivated.connect(openURL)	
+    _dialog.findChild(QPushButton, "btnClauPdf_1").clicked.connect(openPdfZones)
+    _dialog.findChild(QLabel, "lblOrd_1").linkActivated.connect(openURL)
 
     # Annex
-    _dialog.findChild(QLabel, "lblCondGenerals").linkActivated.connect(openURL)	
+    _dialog.findChild(QLabel, "lblCondGenerals").linkActivated.connect(openURL)
     _dialog.findChild(QLabel, "lblParamFinca").linkActivated.connect(openURL)
-    _dialog.findChild(QLabel, "lblParamEdificacio").linkActivated.connect(openURL)	
+    _dialog.findChild(QLabel, "lblParamEdificacio").linkActivated.connect(openURL)
     _dialog.findChild(QLabel, "lblDotacioAparc").linkActivated.connect(openURL)
     _dialog.findChild(QLabel, "lblRegulacioAparc").linkActivated.connect(openURL)
 
@@ -222,7 +222,7 @@ def setSignals():
 def openPdfUbicacio():
 
     myComposition = _iface.activeComposers()[PDF_UBICACIO].composition()
-    myComposition.setAtlasMode(QgsComposition.PreviewAtlas) 	
+    myComposition.setAtlasMode(QgsComposition.PreviewAtlas)
     filePath = report_folder+refcat.text()+"_ubicacio.pdf"
     result = myComposition.exportAsPDF(filePath)
     if result:
@@ -255,14 +255,14 @@ def openPdfZones():
     myComposition.beginPrint(printer)
     printReady = painter.begin(printer)
     if not printReady:
-        showWarning("PDF could not be generated at: "+filePath)    
+        showWarning("PDF could not be generated at: "+filePath)
         return    
     
     progress = QProgressDialog("Rendering maps...", "Abort", 0, myAtlas.numFeatures())
     QApplication.setOverrideCursor(Qt.BusyCursor)
     
     for featureI in range(0, myAtlas.numFeatures()):
-        print "feature: "+str(featureI)              
+        print "feature: "+str(featureI)
         progress.setValue(featureI+1)
         # Process input events in order to allow aborting
         QCoreApplication.processEvents()
@@ -288,7 +288,7 @@ def openPdfZones():
     os.startfile(filePath)       
 
 
-def openPdfZones_multi():	
+def openPdfZones_multi():
 
     myComposition = _iface.activeComposers()[PDF_ZONES].composition()   
     myComposition.setAtlasMode(QgsComposition.ExportAtlas)         
@@ -315,8 +315,8 @@ def openPdfZones_multi():
 
 def openURL(url):
 
-    urlPath = "file://"+current_path+"\\html\\"+url	
-    webbrowser.open(urlPath, 2)	
+    urlPath = "file://"+current_path+"\\html\\"+url
+    webbrowser.open(urlPath, 2)
 
 
 
